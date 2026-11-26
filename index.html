@@ -78,6 +78,8 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
     <button class="btn" style="flex:1" id="cam">Сфотографировать</button>
     <button class="btn" style="flex:1" id="gal">Из галереи</button>
   </div>
+  <button class="btn" style="width:100%;margin-top:8px" id="impBtn">Загрузить целый лист (до 16 кодов)</button>
+  <input type="file" id="fImp" accept="image/*" hidden>
   <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
   <input type="file" id="fGal" accept="image/*" hidden>
   <img class="pv" id="pv" alt="Фото QR-кода">
@@ -98,6 +100,28 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
   <div class="acts"><button class="btn" id="vclose">Закрыть</button><button class="btn" id="ve">Изменить</button><button class="btn bad" id="vx">Удалить</button></div>
 </div></div>
 
+
+<div class="ov view" id="impOv"><div class="sheet">
+ <div id="st1" style="display:flex;flex-direction:column;flex:1;min-height:0">
+  <h3 style="margin:0 0 4px">Лист с QR-кодами</h3>
+  <div style="color:var(--mute);font-size:14px;margin-bottom:8px">Тяните красные точки, чтобы линии сетки легли между наклейками. Рамку можно двигать пальцем.</div>
+  <div style="flex:1;min-height:0;overflow:auto"><canvas id="ic" style="width:100%;touch-action:none;border-radius:8px;display:block"></canvas></div>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+   <button class="btn" id="rot">Повернуть</button>
+   <label style="margin:0;flex:1">Наклон<input id="fine" type="range" min="-8" max="8" step="0.5" value="0" style="width:100%"></label>
+   <label style="margin:0">Столбцов<input class="in" id="cols" type="number" min="1" max="8" value="4" style="width:64px"></label>
+   <label style="margin:0">Строк<input class="in" id="rows" type="number" min="1" max="8" value="4" style="width:64px"></label>
+  </div>
+  <div class="acts"><button class="btn" id="impCancel">Отмена</button><button class="btn pri" id="impNext">Нарезать</button></div>
+ </div>
+ <div id="st2" style="display:none;flex-direction:column;flex:1;min-height:0">
+  <h3 style="margin:0 0 4px">Впишите названия</h3>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><span style="color:var(--mute)">День для всех:</span><select class="in" id="impDay" style="flex:1"></select></div>
+  <div id="ocrSt" style="color:var(--mute);font-size:14px;margin-bottom:6px;min-height:1.3em"></div>
+  <div id="impList" style="flex:1;min-height:0;overflow:auto"></div>
+  <div class="acts"><button class="btn" id="impBack">Назад</button><button class="btn pri" id="impSave">Сохранить всё</button></div>
+ </div>
+</div></div>
 <script>
 var DAYS=[[1,"Пн"],[2,"Вт"],[3,"Ср"],[4,"Чт"],[5,"Пт"],[6,"Сб"],[7,"Вс"]];
 var items=[],filter=String(new Date().getDay()||7),query="",viewId=null,editId=null,newImg=null,delTimer=null;
@@ -214,6 +238,108 @@ $("reset").onclick=function(){
   b.dataset.arm="1";b.textContent="Сбросить все отметки?";
   clearTimeout(rt);rt=setTimeout(function(){b.dataset.arm="";b.textContent="Новый месяц"},3000);
 };
+
+var imp={img:null,r:0,fine:0,work:null,rc:null,drag:null,cells:[]};
+function showStep(n){$("st1").style.display=n===1?"flex":"none";$("st2").style.display=n===2?"flex":"none"}
+function buildWork(){
+ var im=imp.img,k=Math.min(1,1600/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
+ var sw=imp.r%2?h:w,sh=imp.r%2?w:h,c=document.createElement("canvas");c.width=sw;c.height=sh;
+ var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,sw,sh);
+ x.translate(sw/2,sh/2);x.rotate(imp.r*Math.PI/2+imp.fine*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);
+ imp.work=c;
+}
+function defRect(){var w=imp.work;imp.rc={x0:w.width*.06,y0:w.height*.06,x1:w.width*.94,y1:w.height*.94}}
+function drawImp(){
+ var c=$("ic"),w=imp.work;c.width=w.width;c.height=w.height;var x=c.getContext("2d");x.drawImage(w,0,0);
+ var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||4,lw=Math.max(2,w.width/300),i;
+ x.strokeStyle="#0b5fff";x.lineWidth=lw;x.strokeRect(r.x0,r.y0,r.x1-r.x0,r.y1-r.y0);
+ x.beginPath();
+ for(i=1;i<cols;i++){var X=r.x0+(r.x1-r.x0)*i/cols;x.moveTo(X,r.y0);x.lineTo(X,r.y1)}
+ for(i=1;i<rows;i++){var Y=r.y0+(r.y1-r.y0)*i/rows;x.moveTo(r.x0,Y);x.lineTo(r.x1,Y)}
+ x.stroke();x.fillStyle="#ff3b30";
+ [[r.x0,r.y0],[r.x1,r.y1]].forEach(function(p){x.beginPath();x.arc(p[0],p[1],lw*5,0,7);x.fill()});
+}
+function pt(e){var b=$("ic").getBoundingClientRect(),w=imp.work;return{x:(e.clientX-b.left)*w.width/b.width,y:(e.clientY-b.top)*w.height/b.height}}
+$("impBtn").onclick=function(){$("sheetOv").classList.remove("show");$("fImp").click()};
+$("fImp").onchange=function(e){
+ var f=e.target.files[0];if(!f)return;var im=new Image(),u=URL.createObjectURL(f);
+ im.onload=function(){imp.img=im;imp.r=0;imp.fine=0;$("fine").value=0;buildWork();defRect();$("impOv").classList.add("show");showStep(1);drawImp()};
+ im.src=u;e.target.value="";
+};
+$("rot").onclick=function(){imp.r=(imp.r+1)%4;buildWork();defRect();drawImp()};
+$("fine").oninput=function(){imp.fine=+this.value;buildWork();drawImp()};
+$("cols").oninput=drawImp;$("rows").oninput=drawImp;
+$("ic").onpointerdown=function(e){
+ var p=pt(e),r=imp.rc,tol=imp.work.width/12,d1=Math.hypot(p.x-r.x0,p.y-r.y0),d2=Math.hypot(p.x-r.x1,p.y-r.y1);
+ imp.drag=d1<tol&&d1<=d2?{m:"tl"}:d2<tol?{m:"br"}:{m:"mv",ox:p.x,oy:p.y};
+ this.setPointerCapture(e.pointerId);
+};
+$("ic").onpointermove=function(e){
+ if(!imp.drag)return;var p=pt(e),r=imp.rc,d=imp.drag;
+ if(d.m==="tl"){r.x0=Math.min(p.x,r.x1-20);r.y0=Math.min(p.y,r.y1-20)}
+ else if(d.m==="br"){r.x1=Math.max(p.x,r.x0+20);r.y1=Math.max(p.y,r.y0+20)}
+ else{var dx=p.x-d.ox,dy=p.y-d.oy;r.x0+=dx;r.x1+=dx;r.y0+=dy;r.y1+=dy;d.ox=p.x;d.oy=p.y}
+ drawImp();
+};
+$("ic").onpointerup=$("ic").onpointercancel=function(){imp.drag=null};
+$("impCancel").onclick=function(){ocrTok++;$("impOv").classList.remove("show")};
+$("impBack").onclick=function(){ocrTok++;showStep(1)};
+$("impNext").onclick=function(){
+ var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||4,cw=(r.x1-r.x0)/cols,ch=(r.y1-r.y0)/rows,h="";imp.cells=[];
+ for(var j=0;j<rows;j++)for(var i=0;i<cols;i++){
+  var k=Math.min(1,500/Math.max(cw,ch)),c=document.createElement("canvas");c.width=Math.round(cw*k);c.height=Math.round(ch*k);
+  c.getContext("2d").drawImage(imp.work,r.x0+i*cw,r.y0+j*ch,cw,ch,0,0,c.width,c.height);
+  var d=c.toDataURL("image/jpeg",.8);imp.cells.push(d);
+  h+='<div class="row" style="cursor:default"><input type="checkbox" checked aria-label="Сохранить" style="width:22px;height:22px"><img src="'+d+'" alt="" style="object-fit:contain"><div class="t"><input class="in" placeholder="Оборудование" data-n style="margin-bottom:6px"><input class="in" placeholder="Магазин" data-s list="stores"></div></div>';
+ }
+ $("impList").innerHTML=h;
+ $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
+ fillDays($("impDay"),filter!=="all"?+filter:0);showStep(2);
+ runOcr(r,cols,rows);
+};
+$("impSave").onclick=function(){
+ ocrTok++;var d=+$("impDay").value||null;
+ $("impList").querySelectorAll(".row").forEach(function(row,idx){
+  if(!row.querySelector("input[type=checkbox]").checked)return;
+  items.push({id:"q"+Date.now()+"_"+idx,name:row.querySelector("[data-n]").value.trim()||"Без названия",store:row.querySelector("[data-s]").value.trim(),day:d,img:imp.cells[idx],done:false});
+ });
+ save();if(filter!=="all"&&(d||0)!==+filter)filter=d?String(d):"0";
+ $("impOv").classList.remove("show");render();
+};
+
+var ocrTok=0,ocrW=null;
+function buildHi(){
+ var im=imp.img,k=Math.min(1,2800/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
+ var sw=imp.r%2?h:w,sh=imp.r%2?w:h,c=document.createElement("canvas");c.width=sw;c.height=sh;
+ var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,sw,sh);
+ x.translate(sw/2,sh/2);x.rotate(imp.r*Math.PI/2+imp.fine*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);
+ return c;
+}
+function loadScript(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+function snap(t,known){var l=t.toLowerCase(),best=null,bd=99;known.forEach(function(k){var d=lev(l,k.toLowerCase());if(d<bd){bd=d;best=k}});return best&&bd<=Math.max(1,Math.floor(l.length*.2))?best:t}
+async function runOcr(r,cols,rows){
+ var tok=++ocrTok,st=$("ocrSt");st.textContent="Распознаю названия…";
+ try{
+  var base=new URL("ocr/",location.href).href;
+  if(!window.Tesseract)await loadScript(base+"tesseract.min.js");
+  if(!ocrW)ocrW=await Tesseract.createWorker(["rus","eng"],1,{workerPath:base+"worker.min.js",corePath:base,langPath:base,workerBlobURL:false});
+  await ocrW.setParameters({tessedit_pageseg_mode:"7"});
+  var hi=buildHi(),f=hi.width/imp.work.width,cw=(r.x1-r.x0)/cols*f,ch=(r.y1-r.y0)/rows*f,known=items.map(function(x){return x.store}).filter(Boolean),inputs=$("impList").querySelectorAll("[data-s]");
+  for(var n=0;n<cols*rows;n++){
+    if(tok!==ocrTok)return;
+    var i=n%cols,j=Math.floor(n/cols),c=document.createElement("canvas"),sh=ch*.22,sc=Math.min(2,2000/cw);
+    c.width=Math.round(cw*sc);c.height=Math.round(sh*sc);
+    var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
+    x.drawImage(hi,r.x0*f+i*cw,r.y0*f+j*ch,cw,sh,0,0,c.width,c.height);
+    var res=await ocrW.recognize(c),t=res.data.text.replace(/\s+/g," ").replace(/[^A-Za-zА-Яа-яЁё0-9_.,\/\- ]/g,"").trim().replace(/^[^A-Za-zА-Яа-яЁё0-9]+|[^A-Za-zА-Яа-яЁё0-9\/]+$/g,"");
+    if(t){t=snap(t,known);if(known.indexOf(t)<0)known.push(t);if(!inputs[n].value)inputs[n].value=t}
+    st.textContent="Распознаю названия: "+(n+1)+" из "+cols*rows;
+  }
+  st.textContent="Названия распознаны, проверьте их";
+ }catch(e){st.textContent="Автоматическое чтение недоступно, впишите названия вручную"}
+ try{if(ocrW&&tok===ocrTok){ocrW.terminate();ocrW=null}}catch(e){}
+}
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 load().then(function(a){items=a;render()});
 render();
