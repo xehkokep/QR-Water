@@ -1,30 +1,32 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8">
+<html lang="ru" data-theme="dark"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>QR оборудования</title>
+<title>Сканирование ДМП</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="QR">
-<meta name="theme-color" content="#0b5fff">
+<meta name="apple-mobile-web-app-title" content="ДМП">
+<meta name="theme-color" id="tc" content="#0f161d">
+<script>try{var t=localStorage.getItem("qr-theme");document.documentElement.dataset.theme=t==="light"?"light":"dark";if(t==="light")document.getElementById("tc").content="#eef1f4"}catch(e){}</script>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef1f4;--card:#fff;--ink:#14202b;--mute:#5d6b78;--line:#d5dce3;--acc:#0b5fff;--accink:#fff;--ok:#1a8a4a;--danger:#c62828;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f161d;--card:#18222c;--ink:#e8eef4;--mute:#93a1af;--line:#2a3743;--acc:#5b94ff;--accink:#0a1220;--ok:#4cc27d;--danger:#ff7b72;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0f161d;--card:#18222c;--ink:#e8eef4;--mute:#93a1af;--line:#2a3743;--acc:#5b94ff;--accink:#0a1220;--ok:#4cc27d;--danger:#ff7b72;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--bg:#0f161d;--card:#18222c;--ink:#e8eef4;--mute:#93a1af;--line:#2a3743;--acc:#5b94ff;--accink:#0a1220;--ok:#4cc27d;--danger:#ff7b72;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#eef1f4;--card:#fff;--ink:#14202b;--mute:#5d6b78;--line:#d5dce3;--acc:#0b5fff;--accink:#fff;--ok:#1a8a4a;--danger:#c62828;color-scheme:light}
+html{background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.35 Onest,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
 header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;padding:12px 14px 8px;border-bottom:1px solid var(--line)}
 .top{display:flex;align-items:center;gap:10px}
 h1{font-size:20px;font-weight:800;margin:0;flex:1}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
 .btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-weight:600}
-.btn.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.btn.pri,.btn.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
 .btn.bad{color:var(--danger)}
+.btn:disabled{opacity:.35}
+.ic{width:44px;height:44px;padding:0;font-size:22px}
 .btn:focus-visible,.chip:focus-visible,.row:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .search{width:100%;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 .chips{display:flex;gap:6px;overflow-x:auto;margin:10px -14px 0;padding:0 14px 4px;scrollbar-width:none}
@@ -35,45 +37,64 @@ button{cursor:pointer}
 .prog{margin-top:8px;font-size:13px;color:var(--mute)}
 .bar{height:5px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
 .bar i{display:block;height:100%;background:var(--ok);width:0}
-main{padding:6px 14px 110px}
-h2{font-size:14px;font-weight:600;color:var(--mute);margin:18px 0 6px}
-.row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px;width:100%;text-align:left}
+main{padding:10px 14px 110px}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px;width:100%;text-align:left}
 .row img{width:60px;height:60px;object-fit:cover;border-radius:8px;background:#fff;flex:none}
 .row .t{flex:1;min-width:0}
-.row .n{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.row .n{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .d{font-size:13px;color:var(--mute)}
-.row.done{opacity:.55}
+.row.done{opacity:.5}
 .row.done .n{text-decoration:line-through}
 .tick{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:none;flex:none;display:grid;place-items:center;font-size:20px;color:transparent}
 .done .tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.badge{display:inline-block;background:var(--acc);color:var(--accink);border-radius:6px;padding:0 6px;font-size:12px;font-weight:800}
+.grip{width:30px;height:48px;border:none;background:none;color:var(--mute);font-size:24px;touch-action:none;cursor:grab;flex:none;padding:0}
+.row.drag{position:relative;z-index:3;box-shadow:0 8px 22px rgba(0,0,0,.35)}
 .empty{text-align:center;color:var(--mute);padding:50px 20px}
-.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:999px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:999px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:6}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none;align-items:flex-end;justify-content:center}
 .ov.show{display:flex}
 .sheet{background:var(--card);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
 .sheet h3{margin:0 0 12px;font-size:18px}
 label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
 .in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
-.pv{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line);display:none;margin-top:8px}
-.acts{display:flex;gap:8px;margin-top:16px}
+.hint{font-size:13px;color:var(--mute);margin-top:6px}
+.pv{width:100%;max-height:220px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line);display:none;margin-top:8px}
+.acts{display:flex;gap:8px;margin-top:12px}
 .acts .btn{flex:1}
 .view{align-items:stretch}
 .view .sheet{border-radius:0;max-width:none;height:100%;max-height:none;display:flex;flex-direction:column}
-.big{flex:1;min-height:0;background:#fff;border-radius:12px;display:grid;place-items:center;padding:8px}
+.big{flex:1;min-height:0;background:#fff;border-radius:12px;display:grid;place-items:center;padding:8px;position:relative;touch-action:pan-y}
 .big img{max-width:100%;max-height:100%;object-fit:contain}
-.grip{width:30px;height:48px;border:none;background:none;color:var(--mute);font-size:24px;touch-action:none;cursor:grab;flex:none;padding:0}
-.row.drag{position:relative;z-index:3;box-shadow:0 8px 22px rgba(0,0,0,.35)}
-.btn:disabled{opacity:.35}
+.navb{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:60px;border:none;border-radius:10px;background:rgba(0,0,0,.4);color:#fff;font-size:28px}
+.navb.l{left:6px}.navb.r{right:6px}
+.slots{display:flex;gap:6px;margin:8px 0}
+.seg{display:flex;gap:8px}.seg .btn{flex:1}
+.sr{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sr span{color:var(--mute)}.sr b{text-align:right;font-weight:600}
 </style></head>
 <body>
 <header>
-  <div class="top"><h1>QR оборудования</h1><button class="btn" id="reset">Новый месяц</button></div>
-  <input class="search" id="q" type="search" placeholder="Поиск по названию или магазину">
+  <div class="top"><button class="btn ic" id="setOpen" aria-label="Настройки">⚙</button><h1>Сканирование ДМП</h1></div>
+  <input class="search" id="q" type="search" placeholder="Поиск по магазину">
   <div class="chips" id="chips"></div>
   <div class="prog"><span id="pt"></span><div class="bar"><i id="pb"></i></div></div>
 </header>
 <main id="list"></main>
 <button class="btn pri fab" id="add">+ Добавить QR</button>
+
+<div class="ov" id="setOv"><div class="sheet">
+  <h3>Настройки</h3>
+  <label>Тема</label>
+  <div class="seg"><button class="btn" data-th="dark">Тёмная</button><button class="btn" data-th="light">Светлая</button></div>
+  <h3 style="margin-top:22px">Статистика</h3>
+  <div id="stats"></div>
+  <label>Отметки</label>
+  <button class="btn" id="reset" style="width:100%">Сбросить все отметки</button>
+  <label>Обратная связь</label>
+  <a class="btn" id="fb" href="mailto:xehkokep@gmail.com?subject=%D0%A1%D0%BA%D0%B0%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%94%D0%9C%D0%9F" style="display:block;text-align:center;text-decoration:none">Написать разработчику</a>
+  <div class="acts"><button class="btn pri" id="setClose">Готово</button></div>
+</div></div>
 
 <div class="ov" id="sheetOv"><div class="sheet">
   <h3 id="sTitle">Новый QR-код</h3>
@@ -81,29 +102,29 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
     <button class="btn" style="flex:1" id="cam">Сфотографировать</button>
     <button class="btn" style="flex:1" id="gal">Из галереи</button>
   </div>
-  <button class="btn" style="width:100%;margin-top:8px" id="impBtn">Загрузить целый лист (до 16 кодов)</button>
+  <button class="btn" style="width:100%;margin-top:8px" id="impBtn">Загрузить целый лист (до 20 кодов)</button>
   <input type="file" id="fImp" accept="image/*" hidden>
   <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
   <input type="file" id="fGal" accept="image/*" hidden>
   <img class="pv" id="pv" alt="Фото QR-кода">
-  <label for="nm">Оборудование</label>
-  <input class="in" id="nm" placeholder="Например, холодильник №2">
   <label for="st">Магазин</label>
-  <input class="in" id="st" placeholder="Например, Лесная 14" list="stores">
+  <input class="in" id="st" placeholder="Например, senim_мук84" list="stores">
   <datalist id="stores"></datalist>
+  <button class="btn" id="hoBtn" aria-pressed="false" style="width:100%;margin-top:10px">ХО · холодильное оборудование</button>
   <label for="dy">День</label>
   <select class="in" id="dy"></select>
+  <div class="hint" id="dyHint"></div>
   <div class="acts"><button class="btn" id="sCancel">Отмена</button><button class="btn pri" id="sSave">Сохранить</button></div>
 </div></div>
 
 <div class="ov view" id="viewOv"><div class="sheet">
-  <div style="margin-bottom:8px"><div id="vn" style="font-weight:800;font-size:18px"></div><div id="vs" style="color:var(--mute)"></div></div>
-  <div class="big" id="bigBox" style="touch-action:pan-y"><img id="vi" alt="QR-код" draggable="false"></div>
-  <div class="acts" style="align-items:center"><button class="btn" id="vprev" aria-label="Предыдущий">‹</button><span id="vcnt" style="flex:2;text-align:center;color:var(--mute)"></span><button class="btn" id="vnext" aria-label="Следующий">›</button></div>
-  <div class="acts"><select class="in" id="vd" style="flex:1" aria-label="День"></select><button class="btn" id="vc" style="flex:1"></button></div>
+  <div style="display:flex;align-items:center;gap:8px"><div id="vs" style="font-weight:800;font-size:18px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div><span id="vho" class="badge">ХО</span><span id="vcnt" style="color:var(--mute);white-space:nowrap"></span></div>
+  <div class="slots" id="vsl"></div>
+  <div class="big" id="bigBox"><img id="vi" alt="QR-код" draggable="false"><button class="navb l" id="vprev" aria-label="Предыдущий">‹</button><button class="navb r" id="vnext" aria-label="Следующий">›</button></div>
+  <div class="acts"><select class="in" id="vd" style="flex:1" aria-label="День"></select><button class="btn pri" id="vc" style="flex:1"></button></div>
+  <div class="acts"><button class="btn" id="vstore"></button></div>
   <div class="acts"><button class="btn" id="vclose">Закрыть</button><button class="btn" id="ve">Изменить</button><button class="btn bad" id="vx">Удалить</button></div>
 </div></div>
-
 
 <div class="ov view" id="impOv"><div class="sheet">
  <div id="st1" style="display:flex;flex-direction:column;flex:1;min-height:0">
@@ -122,148 +143,219 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
   <div class="acts"><button class="btn" id="impCancel">Отмена</button><button class="btn pri" id="impNext">Нарезать</button></div>
  </div>
  <div id="st2" style="display:none;flex-direction:column;flex:1;min-height:0">
-  <h3 style="margin:0 0 4px">Впишите названия</h3>
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><span style="color:var(--mute)">День для всех:</span><select class="in" id="impDay" style="flex:1"></select></div>
+  <h3 style="margin:0 0 4px">Проверьте магазины</h3>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><select class="in" id="impDay" style="flex:1" aria-label="День для всех"></select><button class="btn" id="impHoAll">ХО всем</button></div>
   <div id="ocrSt" style="color:var(--mute);font-size:14px;margin-bottom:6px;min-height:1.3em"></div>
   <div id="impList" style="flex:1;min-height:0;overflow:auto"></div>
   <div class="acts"><button class="btn" id="impBack">Назад</button><button class="btn pri" id="impSave">Сохранить всё</button></div>
  </div>
 </div></div>
+
 <script>
-var DAYS=[[1,"Пн"],[2,"Вт"],[3,"Ср"],[4,"Чт"],[5,"Пт"],[6,"Сб"],[7,"Вс"]];
-var items=[],filter=String(new Date().getDay()||7),query="",viewId=null,editId=null,newImg=null,delTimer=null;
+var DAYS=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"],SH=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
 var $=function(i){return document.getElementById(i)};
 var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
-var dayName=function(d){return d?DAYS[d-1][1]:"Без дня"};
+var dayFull=function(d){return d?DAYS[d-1]:"Без дня"},dayShort=function(d){return d?SH[d-1]:"Без дня"};
+var items=[],meta={month:""},filter=String(new Date().getDay()||7),query="",viewId=null,editId=null,newImg=null,delTimer=null,rt=null;
 
+/* --- логика дней: Пн-Чт, Вт-Пт, Ср-Сб --- */
+function pair(d){return d>=1&&d<=3?d+3:d>=4&&d<=6?d-3:0}
+function slots(i){var d=i.day||0,p=pair(d);return p?[Math.min(d,p),Math.max(d,p)]:[d]}
+function isDone(i,sl){return !!(i.dn&&i.dn[sl]!=null)}
+function setDone(i,sl,v){i.dn=i.dn||{};if(v)i.dn[sl]=Date.now();else delete i.dn[sl];save()}
+function get(id){return items.filter(function(i){return i.id===id})[0]}
+
+/* --- похожие буквы и регистр: магазины с разным написанием объединяются --- */
+var LK={"а":"a","в":"b","е":"e","ё":"e","к":"k","м":"m","н":"h","о":"o","р":"p","с":"c","т":"t","у":"y","х":"x"};
+function fold(s){return s.toLowerCase().replace(/[а-яё]/g,function(c){return LK[c]||c})}
+function skey(s){return fold((s||"").trim().replace(/\s+/g," "))}
+function canonStore(s){s=s.trim().replace(/\s+/g," ");if(!s)return"";var k=skey(s),f=items.filter(function(i){return i.store&&skey(i.store)===k})[0];return f?f.store:s}
+function unifyStores(){var g={};items.forEach(function(i){if(!i.store)return;var k=skey(i.store);g[k]=g[k]||{};g[k][i.store]=(g[k][i.store]||0)+1});
+ items.forEach(function(i){if(!i.store)return;var c=g[skey(i.store)],b=Object.keys(c).sort(function(a,b){return c[b]-c[a]})[0];i.store=b})}
+function storeItems(i){var k=skey(i.store);return items.filter(function(x){return skey(x.store)===k}).sort(function(a,b){return ((a.day||8)-(b.day||8))||(a.pos-b.pos)})}
+
+/* --- хранилище --- */
 function DB(){return new Promise(function(res,rej){var r=indexedDB.open("qr-eq",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
-function load(){return DB().then(function(db){return new Promise(function(res){var q=db.transaction("kv").objectStore("kv").get("items");q.onsuccess=function(){res(q.result||[])};q.onerror=function(){res([])}})}).catch(function(){return []})}
-function save(){try{DB().then(function(db){db.transaction("kv","readwrite").objectStore("kv").put(items,"items")}).catch(function(){})}catch(e){}}
+function idbGet(k){return DB().then(function(db){return new Promise(function(res){var q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=function(){res(q.result)};q.onerror=function(){res(undefined)}})}).catch(function(){return undefined})}
+function idbSet(k,v){try{DB().then(function(db){db.transaction("kv","readwrite").objectStore("kv").put(v,k)}).catch(function(){})}catch(e){}}
+function save(){idbSet("items",items)}
+function saveMeta(){idbSet("meta",meta)}
+function curMonth(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)}
+function monthCheck(){var m=curMonth();if(meta.month!==m){if(meta.month){items.forEach(function(i){i.dn={}});save()}meta.month=m;saveMeta()}}
+document.addEventListener("visibilitychange",function(){if(!document.hidden){monthCheck();render()}});
 
+/* --- список --- */
 function shown(){
-  var q=query.trim().toLowerCase();
+  var q=fold(query.trim()),f=filter;
   return items.filter(function(i){
-    var okDay=filter==="all"||(filter==="0"?!i.day:String(i.day)===filter);
-    return okDay&&(!q||(i.name+" "+i.store).toLowerCase().indexOf(q)>-1);
-  }).sort(function(a,b){return filter==="all"?(((a.day||8)-(b.day||8))||(a.pos-b.pos)):(a.pos-b.pos)});
+    var ok=f==="all"||slots(i).indexOf(+f)>-1;
+    return ok&&(!q||fold(i.store+" "+(i.name||"")).indexOf(q)>-1);
+  }).sort(function(a,b){return f==="all"?(((a.day||8)-(b.day||8))||(a.pos-b.pos)):(a.pos-b.pos)});
 }
 function render(){
   var c='<button class="chip'+(filter==="all"?" on":"")+'" data-f="all">Все<small>'+items.length+'</small></button>';
-  DAYS.concat([[0,"Без дня"]]).forEach(function(d){
-    var n=items.filter(function(i){return (i.day||0)===d[0]}).length;
-    c+='<button class="chip'+(filter===String(d[0])?" on":"")+'" data-f="'+d[0]+'">'+d[1]+'<small>'+n+'</small></button>';
+  [1,2,3,4,5,6,7,0].forEach(function(d){
+    var n=items.filter(function(i){return slots(i).indexOf(d)>-1}).length;
+    c+='<button class="chip'+(filter===String(d)?" on":"")+'" data-f="'+d+'">'+dayShort(d)+'<small>'+n+'</small></button>';
   });
   $("chips").innerHTML=c;
-  var s=shown(),done=s.filter(function(i){return i.done}).length;
-  $("pt").textContent=s.length?("Отсканировано "+done+" из "+s.length):"";
-  $("pb").style.width=s.length?(done/s.length*100)+"%":"0";
-  if(!s.length){$("list").innerHTML='<div class="empty">'+(items.length?"Здесь пока пусто.":"Добавьте первый QR-код: сфотографируйте его и выберите день.")+'</div>';return}
-  var h="",grip=filter!=="all";
+  var s=shown(),tot=0,done=0;
+  s.forEach(function(i){(filter==="all"?slots(i):[+filter]).forEach(function(sl){tot++;if(isDone(i,sl))done++})});
+  $("pt").textContent=tot?("Отсканировано "+done+" из "+tot):"";
+  $("pb").style.width=tot?(done/tot*100)+"%":"0";
+  if(!s.length){$("list").innerHTML='<div class="empty">'+(items.length?"Здесь пока пусто.":"Добавьте первый QR-код: сфотографируйте его и выберите магазин.")+'</div>';return}
+  var h="",day=filter!=="all";
   s.forEach(function(i){
-    h+='<div class="row'+(i.done?" done":"")+'" role="button" tabindex="0" data-o="'+i.id+'">'+(grip?'<button class="grip" data-h aria-label="Перетащить">≡</button>':"")+'<img src="'+i.img+'" alt=""><div class="t"><div class="n">'+esc(i.name)+'</div><div class="d">'+esc(i.store||"Без магазина")+(filter==="all"?" · "+dayName(i.day):"")+'</div></div><button class="tick" data-t="'+i.id+'" aria-label="Отметить отсканированным">✓</button></div>';
+    var all=filter==="all",dn=all?slots(i).every(function(x){return isDone(i,x)}):isDone(i,+filter);
+    h+='<div class="row'+(dn?" done":"")+'" role="button" tabindex="0" data-o="'+i.id+'">'+(day?'<button class="grip" data-h aria-label="Перетащить">≡</button>':"")+'<img src="'+i.img+'" alt=""><div class="t"><div class="n">'+esc(i.store||"Без магазина")+'</div><div class="d">'+(i.ho?'<span class="badge">ХО</span> ':"")+esc(i.name||"")+(all?" "+slots(i).map(dayShort).join(" · "):"")+'</div></div>'+(day?'<button class="tick" data-t="'+i.id+'" aria-label="Отметить отсканированным">✓</button>':"")+'</div>';
   });
   $("list").innerHTML=h;
 }
-function fillDays(sel,val){sel.innerHTML='<option value="0">Без дня</option>'+DAYS.map(function(d){return'<option value="'+d[0]+'">'+d[1]+"</option>"}).join("");sel.value=String(val||0)}
-function get(id){return items.filter(function(i){return i.id===id})[0]}
+function fillDays(sel,val){sel.innerHTML='<option value="0">Без дня</option>'+DAYS.map(function(n,k){return'<option value="'+(k+1)+'">'+n+'</option>'}).join("");sel.value=String(val||0)}
+function hintFor(d){var p=pair(+d);return p?"Код попадёт сразу в два дня: "+dayFull(Math.min(+d,p)).toLowerCase()+" и "+dayFull(Math.max(+d,p)).toLowerCase():""}
 
 $("chips").onclick=function(e){var b=e.target.closest("[data-f]");if(b){filter=b.dataset.f;render()}};
 $("q").oninput=function(){query=this.value;render()};
 $("list").onclick=function(e){
   if(e.target.closest("[data-h]"))return;
   var t=e.target.closest("[data-t]");
-  if(t){var i=get(t.dataset.t);i.done=!i.done;save();render();return}
+  if(t){var i=get(t.dataset.t);setDone(i,+filter,!isDone(i,+filter));render();return}
   var o=e.target.closest("[data-o]");if(o)openView(o.dataset.o);
 };
 $("list").onkeydown=function(e){if(e.key==="Enter"&&e.target.dataset.o)openView(e.target.dataset.o)};
 
-var vorder=[],vidx=0;
-function openView(id){
-  vorder=shown().map(function(i){return i.id});vidx=Math.max(0,vorder.indexOf(id));showView();
-  $("viewOv").classList.add("show");
-}
+/* --- просмотр кода --- */
+var vorder=[],vidx=0,vmode="list",vctx=null,vsel=null,vselId=null;
+function curSlot(i){var s=slots(i);if(vselId===i.id&&s.indexOf(vsel)>-1)return vsel;if(vctx!==null&&s.indexOf(vctx)>-1)return vctx;var t=new Date().getDay()||7;if(s.indexOf(t)>-1)return t;return s.filter(function(x){return !isDone(i,x)})[0]??s[0]}
+function openView(id){vctx=filter==="all"?null:+filter;vmode="list";vorder=shown().map(function(i){return i.id});vidx=Math.max(0,vorder.indexOf(id));showView();$("viewOv").classList.add("show")}
 function showView(){
-  viewId=vorder[vidx];var i=get(viewId);
-  $("vn").textContent=i.name;$("vs").textContent=i.store||"";$("vi").src=i.img;
-  fillDays($("vd"),i.day);$("vc").textContent=i.done?"Снять отметку":"Отсканирован";
-  $("vcnt").textContent=(vidx+1)+" из "+vorder.length;
-  $("vprev").disabled=vidx===0;$("vnext").disabled=vidx===vorder.length-1;
+  viewId=vorder[vidx];var i=get(viewId);if(!i){closeView();return}
+  var sl=curSlot(i),ss=slots(i),n=storeItems(i).length;
+  $("vs").textContent=i.store||"Без магазина";$("vho").style.display=i.ho?"":"none";
+  $("vcnt").textContent=(vidx+1)+" из "+vorder.length;$("vi").src=i.img;
+  $("vsl").innerHTML=ss.map(function(x){return'<button class="chip'+(x===sl?" on":"")+'" data-sl="'+x+'">'+dayShort(x)+(isDone(i,x)?" ✓":"")+'</button>'}).join("");
+  fillDays($("vd"),i.day);$("vc").textContent=isDone(i,sl)?"Снять отметку":"Отсканирован";
+  $("vstore").textContent=vmode==="store"?"Вернуться к списку":"Все коды магазина ("+n+")";
+  $("vprev").style.visibility=vidx===0?"hidden":"visible";$("vnext").style.visibility=vidx===vorder.length-1?"hidden":"visible";
   $("vx").textContent="Удалить";$("vx").dataset.arm="";
 }
 function go(d){var n=vidx+d;if(n<0||n>=vorder.length)return;vidx=n;showView()}
-$("vprev").onclick=function(){go(-1)};$("vnext").onclick=function(){go(1)};
+function closeView(){$("viewOv").classList.remove("show");viewId=null;render()}
+$("vprev").onclick=function(){go(-1)};$("vnext").onclick=function(){go(1)};$("vclose").onclick=closeView;
+$("vsl").onclick=function(e){var b=e.target.closest("[data-sl]");if(b){vsel=+b.dataset.sl;vselId=viewId;showView()}};
 var sx=null,sy=0;
 $("bigBox").onpointerdown=function(e){sx=e.clientX;sy=e.clientY};
 $("bigBox").onpointerup=function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx<0?1:-1)};
 $("bigBox").onpointercancel=function(){sx=null};
-function closeView(){$("viewOv").classList.remove("show");viewId=null;render()}
-$("vclose").onclick=closeView;
-$("vd").onchange=function(){var i=get(viewId);i.day=+this.value||null;save()};
-$("vc").onclick=function(){var i=get(viewId);i.done=!i.done;save();if(i.done&&vidx<vorder.length-1)go(1);else if(i.done)closeView();else showView()};
+$("vd").onchange=function(){var i=get(viewId);i.day=+this.value||0;i.dn={};save();showView()};
+$("vc").onclick=function(){var i=get(viewId),sl=curSlot(i),v=!isDone(i,sl);setDone(i,sl,v);if(v){if(vidx<vorder.length-1)go(1);else closeView()}else showView()};
+$("vstore").onclick=function(){
+  var i=get(viewId);
+  if(vmode==="list"){vmode="store";vorder=storeItems(i).map(function(x){return x.id});vidx=vorder.indexOf(i.id)}
+  else{vmode="list";vorder=shown().map(function(x){return x.id});vidx=Math.max(0,vorder.indexOf(i.id))}
+  showView();
+};
 $("vx").onclick=function(){
   var b=this;
-  if(b.dataset.arm){items=items.filter(function(i){return i.id!==viewId});save();vorder.splice(vidx,1);if(!vorder.length){closeView();return}vidx=Math.min(vidx,vorder.length-1);showView();return}
-  b.dataset.arm="1";b.textContent="Точно удалить?";
+  if(b.dataset.arm){var id=viewId;items=items.filter(function(i){return i.id!==id});save();vorder.splice(vidx,1);if(!vorder.length){closeView();return}vidx=Math.min(vidx,vorder.length-1);showView();return}
+  b.dataset.arm="1";b.textContent="Удалить для себя?";
   clearTimeout(delTimer);delTimer=setTimeout(function(){b.dataset.arm="";b.textContent="Удалить"},3000);
 };
 $("ve").onclick=function(){var i=get(viewId);$("viewOv").classList.remove("show");openSheet(i)};
 
+/* --- добавление / изменение --- */
+function setHo(b,v){b.classList.toggle("on",v);b.setAttribute("aria-pressed",v?"true":"false")}
 function openSheet(i){
   editId=i?i.id:null;newImg=null;
   $("sTitle").textContent=i?"Изменить QR-код":"Новый QR-код";
-  $("nm").value=i?i.name:"";$("st").value=i?i.store:"";
-  fillDays($("dy"),i?i.day:0);
+  $("st").value=i?i.store:"";setHo($("hoBtn"),!!(i&&i.ho));
+  fillDays($("dy"),i?i.day:0);$("dyHint").textContent=hintFor(i?i.day:0);
   var pv=$("pv");if(i){pv.src=i.img;pv.style.display="block"}else{pv.removeAttribute("src");pv.style.display="none"}
   $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
   $("sheetOv").classList.add("show");
 }
-function closeSheet(){$("sheetOv").classList.remove("show");if(viewId)render()}
 $("add").onclick=function(){openSheet(null)};
-$("sCancel").onclick=function(){closeSheet()};
+$("sCancel").onclick=function(){$("sheetOv").classList.remove("show");render()};
+$("hoBtn").onclick=function(){setHo(this,!this.classList.contains("on"))};
+$("dy").onchange=function(){$("dyHint").textContent=hintFor(this.value)};
 $("cam").onclick=function(){$("fCam").click()};
 $("gal").onclick=function(){$("fGal").click()};
 function onFile(e){
   var f=e.target.files[0];if(!f)return;
   var img=new Image(),u=URL.createObjectURL(f);
   img.onload=function(){
-    var m=1000,k=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");
+    var m=800,q=.8,k=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");
     c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
     c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-    newImg=c.toDataURL("image/jpeg",.85);URL.revokeObjectURL(u);
-    $("pv").src=newImg;$("pv").style.display="block";
+    var d=c.toDataURL("image/jpeg",q);
+    while(d.length>200000&&q>.3){q-=.1;d=c.toDataURL("image/jpeg",q)}
+    newImg=d;URL.revokeObjectURL(u);$("pv").src=newImg;$("pv").style.display="block";
   };
   img.src=u;e.target.value="";
 }
 $("fCam").onchange=onFile;$("fGal").onchange=onFile;
 $("sSave").onclick=function(){
-  var name=$("nm").value.trim();
-  if(!name){$("nm").focus();return}
+  var st=$("st").value.trim();
+  if(!st){$("st").focus();return}
   var img=newImg||(editId?get(editId).img:null);
   if(!img){alert("Добавьте фото QR-кода");return}
-  var d=+$("dy").value||null;
-  if(editId){var i=get(editId);i.name=name;i.store=$("st").value.trim();i.day=d;i.img=img}
-  else items.push({id:"q"+Date.now(),name:name,store:$("st").value.trim(),day:d,img:img,done:false,pos:Date.now()});
+  var d=+$("dy").value||0,ho=$("hoBtn").classList.contains("on"),i;
+  if(editId){i=get(editId);i.store=canonStore(st);i.ho=ho;if((i.day||0)!==d){i.day=d;i.dn={}}i.img=img}
+  else{i={id:"q"+Date.now(),store:canonStore(st),ho:ho,day:d,img:img,pos:Date.now(),dn:{}};items.push(i)}
   save();
-  if(filter!=="all"&&(d||0)!==(+filter))filter=d?String(d):"0";
+  if(filter!=="all"&&slots(i).indexOf(+filter)<0)filter=String(d);
   $("sheetOv").classList.remove("show");render();
 };
-var rt;
+
+/* --- настройки и статистика --- */
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;try{localStorage.setItem("qr-theme",t)}catch(e){}
+  $("tc").setAttribute("content",t==="light"?"#eef1f4":"#0f161d");
+  document.querySelectorAll("[data-th]").forEach(function(b){b.classList.toggle("on",b.dataset.th===t)});
+}
+function fmtDur(ms){var m=Math.round(ms/60000);if(m<1)return Math.max(1,Math.round(ms/1000))+" сек";var d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;return d?d+" дн. "+h+" ч":h?h+" ч "+mm+" мин":mm+" мин"}
+function fmtDt(t){return new Date(t).toLocaleString("ru",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function renderStats(){
+  var tot=0,done=0,ts=[];
+  items.forEach(function(i){slots(i).forEach(function(sl){tot++;if(isDone(i,sl)){done++;if(i.dn[sl]>0)ts.push(i.dn[sl])}})});
+  ts.sort(function(a,b){return a-b});
+  var rows=[["Месяц",new Date().toLocaleDateString("ru",{month:"long",year:"numeric"})],["Отсканировано",done+" из "+tot+(tot?" ("+Math.round(done/tot*100)+"%)":"")]];
+  if(ts.length){
+    var first=ts[0],last=ts[ts.length-1];
+    rows.push(["Первое сканирование",fmtDt(first)],["Последнее сканирование",fmtDt(last)]);
+    rows.push(tot&&done===tot?["Всё отсканировано за",fmtDur(last-first)]:["Осталось отсканировать",String(tot-done)]);
+    var act=0,st=ts[0],pv=ts[0],ses=1;
+    for(var k=1;k<ts.length;k++){if(ts[k]-pv>1800000){act+=pv-st;st=ts[k];ses++}pv=ts[k]}act+=pv-st;
+    if(act>0)rows.push(["Скорость",Math.round((ts.length-ses)/(act/3600000))+" кодов в час"]);
+    var byDate={},byWd=[0,0,0,0,0,0,0];
+    ts.forEach(function(t){var d=new Date(t),key=d.toDateString();byDate[key]=(byDate[key]||0)+1;byWd[(d.getDay()+6)%7]++});
+    var days=Object.keys(byDate),bk=days.slice().sort(function(a,b){return byDate[b]-byDate[a]})[0];
+    rows.push(["Дней сканирования",String(days.length)],["В среднем за день",(ts.length/days.length).toFixed(1)],["Лучший день",new Date(bk).toLocaleDateString("ru",{day:"numeric",month:"long"})+": "+byDate[bk]],["Сегодня",String(byDate[new Date().toDateString()]||0)],["По дням недели",SH.map(function(n,k){return n+" "+byWd[k]}).join(" · ")]);
+  }
+  $("stats").innerHTML=rows.map(function(r){return'<div class="sr"><span>'+r[0]+'</span><b>'+esc(r[1])+'</b></div>'}).join("")+'<div class="hint">Статистика и отметки сбрасываются 1-го числа каждого месяца.'+(ts.length?"":" Пока нет отсканированных кодов.")+'</div>';
+}
+$("setOpen").onclick=function(){renderStats();$("setOv").classList.add("show")};
+$("setClose").onclick=function(){$("setOv").classList.remove("show")};
+document.querySelectorAll("[data-th]").forEach(function(b){b.onclick=function(){applyTheme(b.dataset.th)}});
 $("reset").onclick=function(){
   var b=this;
-  if(b.dataset.arm){items.forEach(function(i){i.done=false});save();render();b.dataset.arm="";b.textContent="Новый месяц";return}
-  b.dataset.arm="1";b.textContent="Сбросить все отметки?";
-  clearTimeout(rt);rt=setTimeout(function(){b.dataset.arm="";b.textContent="Новый месяц"},3000);
+  if(b.dataset.arm){items.forEach(function(i){i.dn={}});save();render();renderStats();b.dataset.arm="";b.textContent="Сбросить все отметки";return}
+  b.dataset.arm="1";b.textContent="Точно сбросить все отметки?";
+  clearTimeout(rt);rt=setTimeout(function(){b.dataset.arm="";b.textContent="Сбросить все отметки"},3000);
 };
 
+/* --- загрузка целого листа --- */
 var imp={img:null,r:0,fine:0,work:null,rc:null,drag:null,cells:[]};
 function showStep(n){$("st1").style.display=n===1?"flex":"none";$("st2").style.display=n===2?"flex":"none"}
-function buildWork(){
- var im=imp.img,k=Math.min(1,1600/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
+function rotated(maxSide){
+ var im=imp.img,k=Math.min(1,maxSide/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
  var sw=imp.r%2?h:w,sh=imp.r%2?w:h,c=document.createElement("canvas");c.width=sw;c.height=sh;
  var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,sw,sh);
  x.translate(sw/2,sh/2);x.rotate(imp.r*Math.PI/2+imp.fine*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);
- imp.work=c;
+ return c;
 }
+function buildWork(){imp.work=rotated(1600)}
+function buildHi(){return rotated(2800)}
 function defRect(){var w=imp.work;imp.rc={x0:w.width*.06,y0:w.height*.06,x1:w.width*.94,y1:w.height*.94}}
 function fitIc(){var b=$("icbox"),w=imp.work,c=$("ic");if(!w||!b.clientWidth)return;var k=Math.min(b.clientWidth/w.width,b.clientHeight/w.height);c.style.width=Math.floor(w.width*k)+"px";c.style.height=Math.floor(w.height*k)+"px"}
 window.addEventListener("resize",fitIc);
@@ -309,37 +401,31 @@ $("impNext").onclick=function(){
   var k=Math.min(1,500/Math.max(cw,ch)),c=document.createElement("canvas");c.width=Math.round(cw*k);c.height=Math.round(ch*k);
   c.getContext("2d").drawImage(imp.work,r.x0+i*cw,r.y0+j*ch,cw,ch,0,0,c.width,c.height);
   var d=c.toDataURL("image/jpeg",.8);imp.cells.push(d);
-  h+='<div class="row" style="cursor:default"><input type="checkbox" checked aria-label="Сохранить" style="width:22px;height:22px"><img src="'+d+'" alt="" style="object-fit:contain"><div class="t"><input class="in" placeholder="Оборудование" data-n style="margin-bottom:6px"><input class="in" placeholder="Магазин" data-s list="stores"></div></div>';
+  h+='<div class="row" style="cursor:default"><input type="checkbox" checked aria-label="Сохранить" style="width:22px;height:22px;flex:none"><img src="'+d+'" alt="" style="object-fit:contain"><div class="t"><input class="in" placeholder="Магазин" data-s list="stores"><button class="btn" data-ho aria-pressed="false" style="margin-top:6px;padding:6px 12px">ХО</button></div></div>';
  }
  $("impList").innerHTML=h;
  $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
  fillDays($("impDay"),0);showStep(2);
  runOcr(r,cols,rows);
 };
+$("impList").addEventListener("click",function(e){var b=e.target.closest("[data-ho]");if(b)setHo(b,!b.classList.contains("on"))});
+$("impHoAll").onclick=function(){var bs=[].slice.call($("impList").querySelectorAll("[data-ho]")),on=bs.some(function(b){return !b.classList.contains("on")});bs.forEach(function(b){setHo(b,on)})};
 $("impSave").onclick=function(){
- ocrTok++;var d=+$("impDay").value||null;
+ ocrTok++;var d=+$("impDay").value||0,n=0,last;
  $("impList").querySelectorAll(".row").forEach(function(row,idx){
   if(!row.querySelector("input[type=checkbox]").checked)return;
-  items.push({id:"q"+Date.now()+"_"+idx,name:row.querySelector("[data-n]").value.trim()||"Без названия",store:row.querySelector("[data-s]").value.trim(),day:d,img:imp.cells[idx],done:false,pos:Date.now()+idx});
+  var it={id:"q"+Date.now()+"_"+idx,store:canonStore(row.querySelector("[data-s]").value),ho:row.querySelector("[data-ho]").classList.contains("on"),day:d,img:imp.cells[idx],pos:Date.now()+idx,dn:{}};
+  items.push(it);last=it;
  });
- save();if(filter!=="all"&&(d||0)!==+filter)filter=d?String(d):"0";
+ save();if(filter!=="all"&&last&&slots(last).indexOf(+filter)<0)filter=String(d);
  $("impOv").classList.remove("show");render();
 };
 
+/* --- распознавание названий магазинов --- */
 var ocrTok=0,ocrW=null;
-function buildHi(){
- var im=imp.img,k=Math.min(1,2800/Math.max(im.width,im.height)),w=Math.round(im.width*k),h=Math.round(im.height*k);
- var sw=imp.r%2?h:w,sh=imp.r%2?w:h,c=document.createElement("canvas");c.width=sw;c.height=sh;
- var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,sw,sh);
- x.translate(sw/2,sh/2);x.rotate(imp.r*Math.PI/2+imp.fine*Math.PI/180);x.drawImage(im,-w/2,-h/2,w,h);
- return c;
-}
-function loadScript(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
-function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
-var LK={"а":"a","в":"b","е":"e","ё":"e","к":"k","м":"m","н":"h","о":"o","р":"p","с":"c","т":"t","у":"y","х":"x"};
 var L2C={a:"а",c:"с",e:"е",o:"о",p:"р",x:"х",y:"у",k:"к",m:"м",t:"т",b:"в",h:"н"},C2L={};
 Object.keys(L2C).forEach(function(k){C2L[L2C[k]]=k});
-function fold(s){return s.toLowerCase().replace(/[а-яё]/g,function(c){return LK[c]||c})}
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
 function mapCh(ch,m){var l=ch.toLowerCase(),r=m[l];if(!r)return ch;return ch===l?r:r.toUpperCase()}
 function fixScript(t){return t.split("_").map(function(seg){
  var cy=/[бгджзийлпфцчшщъыьэюя]/i.test(seg),la=/[dfgjlqsvwz]/i.test(seg);
@@ -362,6 +448,7 @@ $("impList").addEventListener("change",function(e){
   if(o.value!==v&&o.value.replace(/\D/g,"")===v.replace(/\D/g,"")&&lev(fold(o.value),b)<=Math.max(1,Math.floor(b.length*.2))){o.value=v;delete o.dataset.auto}
  });
 });
+function loadScript(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 async function runOcr(r,cols,rows){
  var tok=++ocrTok,st=$("ocrSt");st.textContent="Распознаю названия…";
  try{
@@ -369,7 +456,7 @@ async function runOcr(r,cols,rows){
   if(!window.Tesseract)await loadScript(base+"tesseract.min.js");
   if(!ocrW)ocrW=await Tesseract.createWorker(["rus","eng"],1,{workerPath:base+"worker.min.js",corePath:base,langPath:base,workerBlobURL:false});
   await ocrW.setParameters({tessedit_pageseg_mode:"7"});
-  var hi=buildHi(),f=hi.width/imp.work.width,cw=(r.x1-r.x0)/cols*f,ch=(r.y1-r.y0)/rows*f,known=items.map(function(x){return x.store}).filter(Boolean),inputs=$("impList").querySelectorAll("[data-s]");
+  var hi=buildHi(),f=hi.width/imp.work.width,cw=(r.x1-r.x0)/cols*f,ch=(r.y1-r.y0)/rows*f,inputs=$("impList").querySelectorAll("[data-s]");
   for(var n=0;n<cols*rows;n++){
     if(tok!==ocrTok)return;
     var i=n%cols,j=Math.floor(n/cols),c=document.createElement("canvas"),sh=ch*.22,sc=Math.min(3,Math.max(2,100/sh),2400/cw);
@@ -381,10 +468,11 @@ async function runOcr(r,cols,rows){
     st.textContent="Распознаю названия: "+(n+1)+" из "+cols*rows;
   }
   st.textContent="Исправьте неверное название один раз, похожие поправятся сами";
- }catch(e){st.textContent="Автоматическое чтение недоступно, впишите названия вручную"}
+ }catch(e){st.textContent="Автоматическое чтение недоступно, впишите магазины вручную"}
  try{if(ocrW&&tok===ocrTok){ocrW.terminate();ocrW=null}}catch(e){}
 }
 
+/* --- перетаскивание по маршруту --- */
 var dr=null;
 $("list").addEventListener("pointerdown",function(e){
  var h=e.target.closest("[data-h]");if(!h)return;e.preventDefault();
@@ -393,7 +481,7 @@ $("list").addEventListener("pointerdown",function(e){
 $("list").addEventListener("pointermove",function(e){
  if(!dr)return;var row=dr.row;
  if(e.clientY<150||e.clientY>innerHeight-90){var y0=scrollY;scrollBy(0,e.clientY<150?-12:12);dr.y-=scrollY-y0}
- var off=e.clientY-dr.y;row.style.transform="translateY("+off+"px)";
+ row.style.transform="translateY("+(e.clientY-dr.y)+"px)";
  var m=row.getBoundingClientRect(),cy=m.top+m.height/2;
  var sib=[].slice.call($("list").querySelectorAll(".row")).filter(function(r){return r!==row});
  for(var k=0;k<sib.length;k++){var o=sib[k],b=o.getBoundingClientRect();
@@ -414,8 +502,17 @@ function dropEnd(){
 }
 $("list").addEventListener("pointerup",dropEnd);
 $("list").addEventListener("pointercancel",dropEnd);
+
+/* --- запуск --- */
+applyTheme(document.documentElement.dataset.theme==="light"?"light":"dark");
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
-load().then(function(a){items=a;items.forEach(function(i,k){if(i.pos==null)i.pos=k});render()});
 render();
+Promise.all([idbGet("items"),idbGet("meta")]).then(function(r){
+ items=(r[0]||[]).map(function(i,k){
+  if(i.pos==null)i.pos=k;i.store=(i.store||"").trim();i.day=i.day||0;i.ho=!!i.ho;
+  if(!i.dn){i.dn={};if(i.done)i.dn[i.day]=0}delete i.done;return i});
+ meta=r[1]||{month:""};
+ unifyStores();monthCheck();save();render();
+});
 </script>
 </body></html>
