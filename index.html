@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QR оборудования</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="QR">
+<meta name="theme-color" content="#0b5fff">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#14202b;--mute:#5d6b78;--line:#d5dce3;--acc:#0b5fff;--accink:#fff;--ok:#1a8a4a;--danger:#c62828;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f161d;--card:#18222c;--ink:#e8eef4;--mute:#93a1af;--line:#2a3743;--acc:#5b94ff;--accink:#0a1220;--ok:#4cc27d;--danger:#ff7b72;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f161d;--card:#18222c;--ink:#e8eef4;--mute:#93a1af;--line:#2a3743;--acc:#5b94ff;--accink:#0a1220;--ok:#4cc27d;--danger:#ff7b72;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.35 Onest,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5;padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:10px}
+h1{font-size:20px;font-weight:800;margin:0;flex:1}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px;font-weight:600}
+.btn.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.btn.bad{color:var(--danger)}
+.btn:focus-visible,.chip:focus-visible,.row:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.search{width:100%;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px -14px 0;padding:0 14px 4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-weight:600;white-space:nowrap}
+.chip small{color:var(--mute);font-weight:600;margin-left:4px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.on small{color:var(--bg);opacity:.7}
+.prog{margin-top:8px;font-size:13px;color:var(--mute)}
+.bar{height:5px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+main{padding:6px 14px 110px}
+h2{font-size:14px;font-weight:600;color:var(--mute);margin:18px 0 6px}
+.row{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px;width:100%;text-align:left}
+.row img{width:60px;height:60px;object-fit:cover;border-radius:8px;background:#fff;flex:none}
+.row .t{flex:1;min-width:0}
+.row .n{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.row .d{font-size:13px;color:var(--mute)}
+.row.done{opacity:.55}
+.row.done .n{text-decoration:line-through}
+.tick{width:38px;height:38px;border-radius:50%;border:2px solid var(--line);background:none;flex:none;display:grid;place-items:center;font-size:20px;color:transparent}
+.done .tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.empty{text-align:center;color:var(--mute);padding:50px 20px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:999px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:6}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.ov.show{display:flex}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet h3{margin:0 0 12px;font-size:18px}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+.in{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.pv{width:100%;max-height:240px;object-fit:contain;background:#fff;border-radius:10px;border:1px solid var(--line);display:none;margin-top:8px}
+.acts{display:flex;gap:8px;margin-top:16px}
+.acts .btn{flex:1}
+.view{align-items:stretch}
+.view .sheet{border-radius:0;max-width:none;height:100%;max-height:none;display:flex;flex-direction:column}
+.big{flex:1;min-height:0;background:#fff;border-radius:12px;display:grid;place-items:center;padding:8px}
+.big img{max-width:100%;max-height:100%;object-fit:contain}
+</style></head>
+<body>
+<header>
+  <div class="top"><h1>QR оборудования</h1><button class="btn" id="reset">Новый месяц</button></div>
+  <input class="search" id="q" type="search" placeholder="Поиск по названию или магазину">
+  <div class="chips" id="chips"></div>
+  <div class="prog"><span id="pt"></span><div class="bar"><i id="pb"></i></div></div>
+</header>
+<main id="list"></main>
+<button class="btn pri fab" id="add">+ Добавить QR</button>
+
+<div class="ov" id="sheetOv"><div class="sheet">
+  <h3 id="sTitle">Новый QR-код</h3>
+  <div style="display:flex;gap:8px">
+    <button class="btn" style="flex:1" id="cam">Сфотографировать</button>
+    <button class="btn" style="flex:1" id="gal">Из галереи</button>
+  </div>
+  <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+  <input type="file" id="fGal" accept="image/*" hidden>
+  <img class="pv" id="pv" alt="Фото QR-кода">
+  <label for="nm">Оборудование</label>
+  <input class="in" id="nm" placeholder="Например, холодильник №2">
+  <label for="st">Магазин</label>
+  <input class="in" id="st" placeholder="Например, Лесная 14" list="stores">
+  <datalist id="stores"></datalist>
+  <label for="dy">День</label>
+  <select class="in" id="dy"></select>
+  <div class="acts"><button class="btn" id="sCancel">Отмена</button><button class="btn pri" id="sSave">Сохранить</button></div>
+</div></div>
+
+<div class="ov view" id="viewOv"><div class="sheet">
+  <div style="margin-bottom:8px"><div id="vn" style="font-weight:800;font-size:18px"></div><div id="vs" style="color:var(--mute)"></div></div>
+  <div class="big"><img id="vi" alt="QR-код"></div>
+  <div class="acts"><select class="in" id="vd" style="flex:1" aria-label="День"></select><button class="btn" id="vc" style="flex:1"></button></div>
+  <div class="acts"><button class="btn" id="vclose">Закрыть</button><button class="btn" id="ve">Изменить</button><button class="btn bad" id="vx">Удалить</button></div>
+</div></div>
+
+<script>
+var DAYS=[[1,"Пн"],[2,"Вт"],[3,"Ср"],[4,"Чт"],[5,"Пт"],[6,"Сб"],[7,"Вс"]];
+var items=[],filter=String(new Date().getDay()||7),query="",viewId=null,editId=null,newImg=null,delTimer=null;
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+var dayName=function(d){return d?DAYS[d-1][1]:"Без дня"};
+
+function DB(){return new Promise(function(res,rej){var r=indexedDB.open("qr-eq",1);r.onupgradeneeded=function(){r.result.createObjectStore("kv")};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})}
+function load(){return DB().then(function(db){return new Promise(function(res){var q=db.transaction("kv").objectStore("kv").get("items");q.onsuccess=function(){res(q.result||[])};q.onerror=function(){res([])}})}).catch(function(){return []})}
+function save(){try{DB().then(function(db){db.transaction("kv","readwrite").objectStore("kv").put(items,"items")}).catch(function(){})}catch(e){}}
+
+function shown(){
+  var q=query.trim().toLowerCase();
+  return items.filter(function(i){
+    var okDay=filter==="all"||(filter==="0"?!i.day:String(i.day)===filter);
+    return okDay&&(!q||(i.name+" "+i.store).toLowerCase().indexOf(q)>-1);
+  });
+}
+function render(){
+  var c='<button class="chip'+(filter==="all"?" on":"")+'" data-f="all">Все<small>'+items.length+'</small></button>';
+  DAYS.concat([[0,"Без дня"]]).forEach(function(d){
+    var n=items.filter(function(i){return (i.day||0)===d[0]}).length;
+    c+='<button class="chip'+(filter===String(d[0])?" on":"")+'" data-f="'+d[0]+'">'+d[1]+'<small>'+n+'</small></button>';
+  });
+  $("chips").innerHTML=c;
+  var s=shown(),done=s.filter(function(i){return i.done}).length;
+  $("pt").textContent=s.length?("Отсканировано "+done+" из "+s.length):"";
+  $("pb").style.width=s.length?(done/s.length*100)+"%":"0";
+  if(!s.length){$("list").innerHTML='<div class="empty">'+(items.length?"Здесь пока пусто.":"Добавьте первый QR-код: сфотографируйте его и выберите день.")+'</div>';return}
+  var g={};s.forEach(function(i){(g[i.store||"Без магазина"]=g[i.store||"Без магазина"]||[]).push(i)});
+  var h="";
+  Object.keys(g).sort().forEach(function(k){
+    h+="<h2>"+esc(k)+"</h2>";
+    g[k].forEach(function(i){
+      h+='<div class="row'+(i.done?" done":"")+'" role="button" tabindex="0" data-o="'+i.id+'"><img src="'+i.img+'" alt=""><div class="t"><div class="n">'+esc(i.name)+'</div>'+(filter==="all"?'<div class="d">'+dayName(i.day)+'</div>':"")+'</div><button class="tick" data-t="'+i.id+'" aria-label="Отметить отсканированным">✓</button></div>';
+    });
+  });
+  $("list").innerHTML=h;
+}
+function fillDays(sel,val){sel.innerHTML='<option value="0">Без дня</option>'+DAYS.map(function(d){return'<option value="'+d[0]+'">'+d[1]+"</option>"}).join("");sel.value=String(val||0)}
+function get(id){return items.filter(function(i){return i.id===id})[0]}
+
+$("chips").onclick=function(e){var b=e.target.closest("[data-f]");if(b){filter=b.dataset.f;render()}};
+$("q").oninput=function(){query=this.value;render()};
+$("list").onclick=function(e){
+  var t=e.target.closest("[data-t]");
+  if(t){var i=get(t.dataset.t);i.done=!i.done;save();render();return}
+  var o=e.target.closest("[data-o]");if(o)openView(o.dataset.o);
+};
+$("list").onkeydown=function(e){if(e.key==="Enter"&&e.target.dataset.o)openView(e.target.dataset.o)};
+
+function openView(id){
+  viewId=id;var i=get(id);
+  $("vn").textContent=i.name;$("vs").textContent=i.store||"";$("vi").src=i.img;
+  fillDays($("vd"),i.day);$("vc").textContent=i.done?"Снять отметку":"Отсканирован";
+  $("vx").textContent="Удалить";$("vx").dataset.arm="";
+  $("viewOv").classList.add("show");
+}
+function closeView(){$("viewOv").classList.remove("show");viewId=null;render()}
+$("vclose").onclick=closeView;
+$("vd").onchange=function(){var i=get(viewId);i.day=+this.value||null;save()};
+$("vc").onclick=function(){var i=get(viewId);i.done=!i.done;save();closeView()};
+$("vx").onclick=function(){
+  var b=this;
+  if(b.dataset.arm){items=items.filter(function(i){return i.id!==viewId});save();closeView();return}
+  b.dataset.arm="1";b.textContent="Точно удалить?";
+  clearTimeout(delTimer);delTimer=setTimeout(function(){b.dataset.arm="";b.textContent="Удалить"},3000);
+};
+$("ve").onclick=function(){var i=get(viewId);$("viewOv").classList.remove("show");openSheet(i)};
+
+function openSheet(i){
+  editId=i?i.id:null;newImg=null;
+  $("sTitle").textContent=i?"Изменить QR-код":"Новый QR-код";
+  $("nm").value=i?i.name:"";$("st").value=i?i.store:"";
+  fillDays($("dy"),i?i.day:(filter!=="all"?+filter:0));
+  var pv=$("pv");if(i){pv.src=i.img;pv.style.display="block"}else{pv.removeAttribute("src");pv.style.display="none"}
+  $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
+  $("sheetOv").classList.add("show");
+}
+function closeSheet(){$("sheetOv").classList.remove("show");if(viewId)render()}
+$("add").onclick=function(){openSheet(null)};
+$("sCancel").onclick=function(){closeSheet()};
+$("cam").onclick=function(){$("fCam").click()};
+$("gal").onclick=function(){$("fGal").click()};
+function onFile(e){
+  var f=e.target.files[0];if(!f)return;
+  var img=new Image(),u=URL.createObjectURL(f);
+  img.onload=function(){
+    var m=1000,k=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement("canvas");
+    c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    newImg=c.toDataURL("image/jpeg",.85);URL.revokeObjectURL(u);
+    $("pv").src=newImg;$("pv").style.display="block";
+  };
+  img.src=u;e.target.value="";
+}
+$("fCam").onchange=onFile;$("fGal").onchange=onFile;
+$("sSave").onclick=function(){
+  var name=$("nm").value.trim();
+  if(!name){$("nm").focus();return}
+  var img=newImg||(editId?get(editId).img:null);
+  if(!img){alert("Добавьте фото QR-кода");return}
+  var d=+$("dy").value||null;
+  if(editId){var i=get(editId);i.name=name;i.store=$("st").value.trim();i.day=d;i.img=img}
+  else items.push({id:"q"+Date.now(),name:name,store:$("st").value.trim(),day:d,img:img,done:false});
+  save();
+  if(filter!=="all"&&(d||0)!==(+filter))filter=d?String(d):"0";
+  $("sheetOv").classList.remove("show");render();
+};
+var rt;
+$("reset").onclick=function(){
+  var b=this;
+  if(b.dataset.arm){items.forEach(function(i){i.done=false});save();render();b.dataset.arm="";b.textContent="Новый месяц";return}
+  b.dataset.arm="1";b.textContent="Сбросить все отметки?";
+  clearTimeout(rt);rt=setTimeout(function(){b.dataset.arm="";b.textContent="Новый месяц"},3000);
+};
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+load().then(function(a){items=a;render()});
+render();
+</script>
+</body></html>
