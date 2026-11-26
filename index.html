@@ -61,6 +61,9 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
 .view .sheet{border-radius:0;max-width:none;height:100%;max-height:none;display:flex;flex-direction:column}
 .big{flex:1;min-height:0;background:#fff;border-radius:12px;display:grid;place-items:center;padding:8px}
 .big img{max-width:100%;max-height:100%;object-fit:contain}
+.grip{width:30px;height:48px;border:none;background:none;color:var(--mute);font-size:24px;touch-action:none;cursor:grab;flex:none;padding:0}
+.row.drag{position:relative;z-index:3;box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.btn:disabled{opacity:.35}
 </style></head>
 <body>
 <header>
@@ -95,7 +98,8 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
 
 <div class="ov view" id="viewOv"><div class="sheet">
   <div style="margin-bottom:8px"><div id="vn" style="font-weight:800;font-size:18px"></div><div id="vs" style="color:var(--mute)"></div></div>
-  <div class="big"><img id="vi" alt="QR-код"></div>
+  <div class="big" id="bigBox" style="touch-action:pan-y"><img id="vi" alt="QR-код" draggable="false"></div>
+  <div class="acts" style="align-items:center"><button class="btn" id="vprev" aria-label="Предыдущий">‹</button><span id="vcnt" style="flex:2;text-align:center;color:var(--mute)"></span><button class="btn" id="vnext" aria-label="Следующий">›</button></div>
   <div class="acts"><select class="in" id="vd" style="flex:1" aria-label="День"></select><button class="btn" id="vc" style="flex:1"></button></div>
   <div class="acts"><button class="btn" id="vclose">Закрыть</button><button class="btn" id="ve">Изменить</button><button class="btn bad" id="vx">Удалить</button></div>
 </div></div>
@@ -106,11 +110,14 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
   <h3 style="margin:0 0 4px">Лист с QR-кодами</h3>
   <div style="color:var(--mute);font-size:14px;margin-bottom:8px">Тяните красные точки, чтобы линии сетки легли между наклейками. Рамку можно двигать пальцем.</div>
   <div id="icbox" style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center"><canvas id="ic" style="touch-action:none;border-radius:8px;display:block"></canvas></div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px">
+  <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
    <button class="btn" id="rot">Повернуть</button>
-   <label style="margin:0;flex:1">Наклон<input id="fine" type="range" min="-8" max="8" step="0.5" value="0" style="width:100%"></label>
+   <button class="btn" id="setBtn">Настройки сетки</button>
+  </div>
+  <div id="setBox" style="display:none;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px">
+   <label style="margin:0;flex:1;min-width:120px">Наклон<input id="fine" type="range" min="-8" max="8" step="0.5" value="0" style="width:100%"></label>
    <label style="margin:0">Столбцов<input class="in" id="cols" type="number" min="1" max="8" value="4" style="width:64px"></label>
-   <label style="margin:0">Строк<input class="in" id="rows" type="number" min="1" max="8" value="4" style="width:64px"></label>
+   <label style="margin:0">Строк<input class="in" id="rows" type="number" min="1" max="8" value="5" style="width:64px"></label>
   </div>
   <div class="acts"><button class="btn" id="impCancel">Отмена</button><button class="btn pri" id="impNext">Нарезать</button></div>
  </div>
@@ -138,7 +145,7 @@ function shown(){
   return items.filter(function(i){
     var okDay=filter==="all"||(filter==="0"?!i.day:String(i.day)===filter);
     return okDay&&(!q||(i.name+" "+i.store).toLowerCase().indexOf(q)>-1);
-  });
+  }).sort(function(a,b){return filter==="all"?(((a.day||8)-(b.day||8))||(a.pos-b.pos)):(a.pos-b.pos)});
 }
 function render(){
   var c='<button class="chip'+(filter==="all"?" on":"")+'" data-f="all">Все<small>'+items.length+'</small></button>';
@@ -151,13 +158,9 @@ function render(){
   $("pt").textContent=s.length?("Отсканировано "+done+" из "+s.length):"";
   $("pb").style.width=s.length?(done/s.length*100)+"%":"0";
   if(!s.length){$("list").innerHTML='<div class="empty">'+(items.length?"Здесь пока пусто.":"Добавьте первый QR-код: сфотографируйте его и выберите день.")+'</div>';return}
-  var g={};s.forEach(function(i){(g[i.store||"Без магазина"]=g[i.store||"Без магазина"]||[]).push(i)});
-  var h="";
-  Object.keys(g).sort().forEach(function(k){
-    h+="<h2>"+esc(k)+"</h2>";
-    g[k].forEach(function(i){
-      h+='<div class="row'+(i.done?" done":"")+'" role="button" tabindex="0" data-o="'+i.id+'"><img src="'+i.img+'" alt=""><div class="t"><div class="n">'+esc(i.name)+'</div>'+(filter==="all"?'<div class="d">'+dayName(i.day)+'</div>':"")+'</div><button class="tick" data-t="'+i.id+'" aria-label="Отметить отсканированным">✓</button></div>';
-    });
+  var h="",grip=filter!=="all";
+  s.forEach(function(i){
+    h+='<div class="row'+(i.done?" done":"")+'" role="button" tabindex="0" data-o="'+i.id+'">'+(grip?'<button class="grip" data-h aria-label="Перетащить">≡</button>':"")+'<img src="'+i.img+'" alt=""><div class="t"><div class="n">'+esc(i.name)+'</div><div class="d">'+esc(i.store||"Без магазина")+(filter==="all"?" · "+dayName(i.day):"")+'</div></div><button class="tick" data-t="'+i.id+'" aria-label="Отметить отсканированным">✓</button></div>';
   });
   $("list").innerHTML=h;
 }
@@ -167,26 +170,39 @@ function get(id){return items.filter(function(i){return i.id===id})[0]}
 $("chips").onclick=function(e){var b=e.target.closest("[data-f]");if(b){filter=b.dataset.f;render()}};
 $("q").oninput=function(){query=this.value;render()};
 $("list").onclick=function(e){
+  if(e.target.closest("[data-h]"))return;
   var t=e.target.closest("[data-t]");
   if(t){var i=get(t.dataset.t);i.done=!i.done;save();render();return}
   var o=e.target.closest("[data-o]");if(o)openView(o.dataset.o);
 };
 $("list").onkeydown=function(e){if(e.key==="Enter"&&e.target.dataset.o)openView(e.target.dataset.o)};
 
+var vorder=[],vidx=0;
 function openView(id){
-  viewId=id;var i=get(id);
-  $("vn").textContent=i.name;$("vs").textContent=i.store||"";$("vi").src=i.img;
-  fillDays($("vd"),i.day);$("vc").textContent=i.done?"Снять отметку":"Отсканирован";
-  $("vx").textContent="Удалить";$("vx").dataset.arm="";
+  vorder=shown().map(function(i){return i.id});vidx=Math.max(0,vorder.indexOf(id));showView();
   $("viewOv").classList.add("show");
 }
+function showView(){
+  viewId=vorder[vidx];var i=get(viewId);
+  $("vn").textContent=i.name;$("vs").textContent=i.store||"";$("vi").src=i.img;
+  fillDays($("vd"),i.day);$("vc").textContent=i.done?"Снять отметку":"Отсканирован";
+  $("vcnt").textContent=(vidx+1)+" из "+vorder.length;
+  $("vprev").disabled=vidx===0;$("vnext").disabled=vidx===vorder.length-1;
+  $("vx").textContent="Удалить";$("vx").dataset.arm="";
+}
+function go(d){var n=vidx+d;if(n<0||n>=vorder.length)return;vidx=n;showView()}
+$("vprev").onclick=function(){go(-1)};$("vnext").onclick=function(){go(1)};
+var sx=null,sy=0;
+$("bigBox").onpointerdown=function(e){sx=e.clientX;sy=e.clientY};
+$("bigBox").onpointerup=function(e){if(sx===null)return;var dx=e.clientX-sx,dy=e.clientY-sy;sx=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx<0?1:-1)};
+$("bigBox").onpointercancel=function(){sx=null};
 function closeView(){$("viewOv").classList.remove("show");viewId=null;render()}
 $("vclose").onclick=closeView;
 $("vd").onchange=function(){var i=get(viewId);i.day=+this.value||null;save()};
-$("vc").onclick=function(){var i=get(viewId);i.done=!i.done;save();closeView()};
+$("vc").onclick=function(){var i=get(viewId);i.done=!i.done;save();if(i.done&&vidx<vorder.length-1)go(1);else if(i.done)closeView();else showView()};
 $("vx").onclick=function(){
   var b=this;
-  if(b.dataset.arm){items=items.filter(function(i){return i.id!==viewId});save();closeView();return}
+  if(b.dataset.arm){items=items.filter(function(i){return i.id!==viewId});save();vorder.splice(vidx,1);if(!vorder.length){closeView();return}vidx=Math.min(vidx,vorder.length-1);showView();return}
   b.dataset.arm="1";b.textContent="Точно удалить?";
   clearTimeout(delTimer);delTimer=setTimeout(function(){b.dataset.arm="";b.textContent="Удалить"},3000);
 };
@@ -196,7 +212,7 @@ function openSheet(i){
   editId=i?i.id:null;newImg=null;
   $("sTitle").textContent=i?"Изменить QR-код":"Новый QR-код";
   $("nm").value=i?i.name:"";$("st").value=i?i.store:"";
-  fillDays($("dy"),i?i.day:(filter!=="all"?+filter:0));
+  fillDays($("dy"),i?i.day:0);
   var pv=$("pv");if(i){pv.src=i.img;pv.style.display="block"}else{pv.removeAttribute("src");pv.style.display="none"}
   $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
   $("sheetOv").classList.add("show");
@@ -226,7 +242,7 @@ $("sSave").onclick=function(){
   if(!img){alert("Добавьте фото QR-кода");return}
   var d=+$("dy").value||null;
   if(editId){var i=get(editId);i.name=name;i.store=$("st").value.trim();i.day=d;i.img=img}
-  else items.push({id:"q"+Date.now(),name:name,store:$("st").value.trim(),day:d,img:img,done:false});
+  else items.push({id:"q"+Date.now(),name:name,store:$("st").value.trim(),day:d,img:img,done:false,pos:Date.now()});
   save();
   if(filter!=="all"&&(d||0)!==(+filter))filter=d?String(d):"0";
   $("sheetOv").classList.remove("show");render();
@@ -253,7 +269,7 @@ function fitIc(){var b=$("icbox"),w=imp.work,c=$("ic");if(!w||!b.clientWidth)ret
 window.addEventListener("resize",fitIc);
 function drawImp(){
  var c=$("ic"),w=imp.work;c.width=w.width;c.height=w.height;fitIc();var x=c.getContext("2d");x.drawImage(w,0,0);
- var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||4,lw=Math.max(2,w.width/300),i;
+ var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||5,lw=Math.max(2,w.width/300),i;
  x.strokeStyle="#0b5fff";x.lineWidth=lw;x.strokeRect(r.x0,r.y0,r.x1-r.x0,r.y1-r.y0);
  x.beginPath();
  for(i=1;i<cols;i++){var X=r.x0+(r.x1-r.x0)*i/cols;x.moveTo(X,r.y0);x.lineTo(X,r.y1)}
@@ -265,9 +281,10 @@ function pt(e){var b=$("ic").getBoundingClientRect(),w=imp.work;return{x:(e.clie
 $("impBtn").onclick=function(){$("sheetOv").classList.remove("show");$("fImp").click()};
 $("fImp").onchange=function(e){
  var f=e.target.files[0];if(!f)return;var im=new Image(),u=URL.createObjectURL(f);
- im.onload=function(){imp.img=im;imp.r=0;imp.fine=0;$("fine").value=0;buildWork();defRect();$("impOv").classList.add("show");showStep(1);drawImp()};
+ im.onload=function(){imp.img=im;imp.r=0;imp.fine=0;$("fine").value=0;$("cols").value=4;$("rows").value=5;buildWork();defRect();$("impOv").classList.add("show");showStep(1);drawImp()};
  im.src=u;e.target.value="";
 };
+$("setBtn").onclick=function(){var b=$("setBox");b.style.display=b.style.display==="flex"?"none":"flex";fitIc()};
 $("rot").onclick=function(){imp.r=(imp.r+1)%4;buildWork();defRect();drawImp()};
 $("fine").oninput=function(){imp.fine=+this.value;buildWork();drawImp()};
 $("cols").oninput=drawImp;$("rows").oninput=drawImp;
@@ -287,7 +304,7 @@ $("ic").onpointerup=$("ic").onpointercancel=function(){imp.drag=null};
 $("impCancel").onclick=function(){ocrTok++;$("impOv").classList.remove("show")};
 $("impBack").onclick=function(){ocrTok++;showStep(1)};
 $("impNext").onclick=function(){
- var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||4,cw=(r.x1-r.x0)/cols,ch=(r.y1-r.y0)/rows,h="";imp.cells=[];
+ var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||5,cw=(r.x1-r.x0)/cols,ch=(r.y1-r.y0)/rows,h="";imp.cells=[];
  for(var j=0;j<rows;j++)for(var i=0;i<cols;i++){
   var k=Math.min(1,500/Math.max(cw,ch)),c=document.createElement("canvas");c.width=Math.round(cw*k);c.height=Math.round(ch*k);
   c.getContext("2d").drawImage(imp.work,r.x0+i*cw,r.y0+j*ch,cw,ch,0,0,c.width,c.height);
@@ -296,14 +313,14 @@ $("impNext").onclick=function(){
  }
  $("impList").innerHTML=h;
  $("stores").innerHTML=Array.from(new Set(items.map(function(x){return x.store}).filter(Boolean))).map(function(s){return'<option value="'+esc(s)+'">'}).join("");
- fillDays($("impDay"),filter!=="all"?+filter:0);showStep(2);
+ fillDays($("impDay"),0);showStep(2);
  runOcr(r,cols,rows);
 };
 $("impSave").onclick=function(){
  ocrTok++;var d=+$("impDay").value||null;
  $("impList").querySelectorAll(".row").forEach(function(row,idx){
   if(!row.querySelector("input[type=checkbox]").checked)return;
-  items.push({id:"q"+Date.now()+"_"+idx,name:row.querySelector("[data-n]").value.trim()||"Без названия",store:row.querySelector("[data-s]").value.trim(),day:d,img:imp.cells[idx],done:false});
+  items.push({id:"q"+Date.now()+"_"+idx,name:row.querySelector("[data-n]").value.trim()||"Без названия",store:row.querySelector("[data-s]").value.trim(),day:d,img:imp.cells[idx],done:false,pos:Date.now()+idx});
  });
  save();if(filter!=="all"&&(d||0)!==+filter)filter=d?String(d):"0";
  $("impOv").classList.remove("show");render();
@@ -319,7 +336,32 @@ function buildHi(){
 }
 function loadScript(src){return new Promise(function(res,rej){var s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
-function snap(t,known){var l=t.toLowerCase(),best=null,bd=99;known.forEach(function(k){var d=lev(l,k.toLowerCase());if(d<bd){bd=d;best=k}});return best&&bd<=Math.max(1,Math.floor(l.length*.2))?best:t}
+var LK={"а":"a","в":"b","е":"e","ё":"e","к":"k","м":"m","н":"h","о":"o","р":"p","с":"c","т":"t","у":"y","х":"x"};
+var L2C={a:"а",c:"с",e:"е",o:"о",p:"р",x:"х",y:"у",k:"к",m:"м",t:"т",b:"в",h:"н"},C2L={};
+Object.keys(L2C).forEach(function(k){C2L[L2C[k]]=k});
+function fold(s){return s.toLowerCase().replace(/[а-яё]/g,function(c){return LK[c]||c})}
+function mapCh(ch,m){var l=ch.toLowerCase(),r=m[l];if(!r)return ch;return ch===l?r:r.toUpperCase()}
+function fixScript(t){return t.split("_").map(function(seg){
+ var cy=/[бгджзийлпфцчшщъыьэюя]/i.test(seg),la=/[dfgjlqsvwz]/i.test(seg);
+ if(cy&&!la)return seg.replace(/[A-Za-z]/g,function(c){return mapCh(c,L2C)});
+ if(la&&!cy)return seg.replace(/[А-Яа-яЁё]/g,function(c){return mapCh(c,C2L)});
+ return seg}).join("_")}
+function cleanOcr(t){return t.replace(/\s+/g," ").replace(/[^A-Za-zА-Яа-яЁё0-9_.,\/\- ]/g,"").trim().replace(/^[^A-Za-zА-Яа-яЁё0-9]+|[^A-Za-zА-Яа-яЁё0-9\/]+$/g,"")}
+function snap(t,known){var f=fold(t),dg=t.replace(/\D/g,""),best=null,bd=99;
+ known.forEach(function(k){if(k.replace(/\D/g,"")!==dg)return;var d=lev(f,fold(k));if(d<bd){bd=d;best=k}});
+ return best&&bd<=Math.max(1,Math.floor(f.length*.2))?best:t}
+function knownStores(){var a=items.map(function(x){return x.store}).filter(Boolean);
+ $("impList").querySelectorAll("[data-s]").forEach(function(i){if(i.value&&i.dataset.auto!=="1")a.push(i.value)});
+ return Array.from(new Set(a))}
+$("impList").addEventListener("change",function(e){
+ var t=e.target;if(!t.matches||!t.matches("[data-s]"))return;
+ var v=t.value.trim();delete t.dataset.auto;if(!v)return;
+ $("impList").querySelectorAll("[data-s]").forEach(function(o){
+  if(o===t||o.dataset.auto!=="1")return;
+  var b=fold(v);
+  if(o.value!==v&&o.value.replace(/\D/g,"")===v.replace(/\D/g,"")&&lev(fold(o.value),b)<=Math.max(1,Math.floor(b.length*.2))){o.value=v;delete o.dataset.auto}
+ });
+});
 async function runOcr(r,cols,rows){
  var tok=++ocrTok,st=$("ocrSt");st.textContent="Распознаю названия…";
  try{
@@ -330,20 +372,50 @@ async function runOcr(r,cols,rows){
   var hi=buildHi(),f=hi.width/imp.work.width,cw=(r.x1-r.x0)/cols*f,ch=(r.y1-r.y0)/rows*f,known=items.map(function(x){return x.store}).filter(Boolean),inputs=$("impList").querySelectorAll("[data-s]");
   for(var n=0;n<cols*rows;n++){
     if(tok!==ocrTok)return;
-    var i=n%cols,j=Math.floor(n/cols),c=document.createElement("canvas"),sh=ch*.22,sc=Math.min(2,2000/cw);
+    var i=n%cols,j=Math.floor(n/cols),c=document.createElement("canvas"),sh=ch*.22,sc=Math.min(3,Math.max(2,100/sh),2400/cw);
     c.width=Math.round(cw*sc);c.height=Math.round(sh*sc);
     var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);
     x.drawImage(hi,r.x0*f+i*cw,r.y0*f+j*ch,cw,sh,0,0,c.width,c.height);
-    var res=await ocrW.recognize(c),t=res.data.text.replace(/\s+/g," ").replace(/[^A-Za-zА-Яа-яЁё0-9_.,\/\- ]/g,"").trim().replace(/^[^A-Za-zА-Яа-яЁё0-9]+|[^A-Za-zА-Яа-яЁё0-9\/]+$/g,"");
-    if(t){t=snap(t,known);if(known.indexOf(t)<0)known.push(t);if(!inputs[n].value)inputs[n].value=t}
+    var res=await ocrW.recognize(c),t=cleanOcr(res.data.text);
+    if(t){t=snap(fixScript(t),knownStores());if(!inputs[n].value){inputs[n].value=t;inputs[n].dataset.auto="1"}}
     st.textContent="Распознаю названия: "+(n+1)+" из "+cols*rows;
   }
-  st.textContent="Названия распознаны, проверьте их";
+  st.textContent="Исправьте неверное название один раз, похожие поправятся сами";
  }catch(e){st.textContent="Автоматическое чтение недоступно, впишите названия вручную"}
  try{if(ocrW&&tok===ocrTok){ocrW.terminate();ocrW=null}}catch(e){}
 }
+
+var dr=null;
+$("list").addEventListener("pointerdown",function(e){
+ var h=e.target.closest("[data-h]");if(!h)return;e.preventDefault();
+ var row=h.closest(".row");dr={row:row,y:e.clientY};row.classList.add("drag");h.setPointerCapture(e.pointerId);
+});
+$("list").addEventListener("pointermove",function(e){
+ if(!dr)return;var row=dr.row;
+ if(e.clientY<150||e.clientY>innerHeight-90){var y0=scrollY;scrollBy(0,e.clientY<150?-12:12);dr.y-=scrollY-y0}
+ var off=e.clientY-dr.y;row.style.transform="translateY("+off+"px)";
+ var m=row.getBoundingClientRect(),cy=m.top+m.height/2;
+ var sib=[].slice.call($("list").querySelectorAll(".row")).filter(function(r){return r!==row});
+ for(var k=0;k<sib.length;k++){var o=sib[k],b=o.getBoundingClientRect();
+  if(cy>b.top&&cy<b.bottom){
+   row.style.transform="";var t0=row.getBoundingClientRect().top;
+   if(row.compareDocumentPosition(o)&4)o.after(row);else o.before(row);
+   var t1=row.getBoundingClientRect().top;dr.y+=t1-t0;
+   row.style.transform="translateY("+(e.clientY-dr.y)+"px)";break;
+  }
+ }
+});
+function dropEnd(){
+ if(!dr)return;var row=dr.row;row.style.transform="";row.classList.remove("drag");dr=null;
+ var its=[].map.call($("list").querySelectorAll(".row"),function(r){return get(r.dataset.o)});
+ var vals=its.map(function(i){return i.pos}).sort(function(a,b){return a-b});
+ its.forEach(function(i,k){i.pos=vals[k]});
+ save();render();
+}
+$("list").addEventListener("pointerup",dropEnd);
+$("list").addEventListener("pointercancel",dropEnd);
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
-load().then(function(a){items=a;render()});
+load().then(function(a){items=a;items.forEach(function(i,k){if(i.pos==null)i.pos=k});render()});
 render();
 </script>
 </body></html>
