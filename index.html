@@ -105,8 +105,8 @@ label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
  <div id="st1" style="display:flex;flex-direction:column;flex:1;min-height:0">
   <h3 style="margin:0 0 4px">Лист с QR-кодами</h3>
   <div style="color:var(--mute);font-size:14px;margin-bottom:8px">Тяните красные точки, чтобы линии сетки легли между наклейками. Рамку можно двигать пальцем.</div>
-  <div style="flex:1;min-height:0;overflow:auto"><canvas id="ic" style="width:100%;touch-action:none;border-radius:8px;display:block"></canvas></div>
-  <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+  <div id="icbox" style="flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center"><canvas id="ic" style="touch-action:none;border-radius:8px;display:block"></canvas></div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px">
    <button class="btn" id="rot">Повернуть</button>
    <label style="margin:0;flex:1">Наклон<input id="fine" type="range" min="-8" max="8" step="0.5" value="0" style="width:100%"></label>
    <label style="margin:0">Столбцов<input class="in" id="cols" type="number" min="1" max="8" value="4" style="width:64px"></label>
@@ -249,8 +249,10 @@ function buildWork(){
  imp.work=c;
 }
 function defRect(){var w=imp.work;imp.rc={x0:w.width*.06,y0:w.height*.06,x1:w.width*.94,y1:w.height*.94}}
+function fitIc(){var b=$("icbox"),w=imp.work,c=$("ic");if(!w||!b.clientWidth)return;var k=Math.min(b.clientWidth/w.width,b.clientHeight/w.height);c.style.width=Math.floor(w.width*k)+"px";c.style.height=Math.floor(w.height*k)+"px"}
+window.addEventListener("resize",fitIc);
 function drawImp(){
- var c=$("ic"),w=imp.work;c.width=w.width;c.height=w.height;var x=c.getContext("2d");x.drawImage(w,0,0);
+ var c=$("ic"),w=imp.work;c.width=w.width;c.height=w.height;fitIc();var x=c.getContext("2d");x.drawImage(w,0,0);
  var r=imp.rc,cols=+$("cols").value||4,rows=+$("rows").value||4,lw=Math.max(2,w.width/300),i;
  x.strokeStyle="#0b5fff";x.lineWidth=lw;x.strokeRect(r.x0,r.y0,r.x1-r.x0,r.y1-r.y0);
  x.beginPath();
